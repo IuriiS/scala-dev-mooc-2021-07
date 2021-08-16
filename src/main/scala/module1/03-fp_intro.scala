@@ -170,6 +170,21 @@ object opt {
       case Option.Some(v) => f(v)
       case Option.None => Option.None
     }
+
+    def printIfAny: Unit = this match {
+      case Option.Some(v) => println(s"Value of the option is $v")
+      case Option.None =>
+    }
+
+    def filter(predicate: T => Boolean): Option[T] = this match {
+      case base@Option.Some(v) => if (predicate(v)) base else Option.None
+      case _ => Option.None
+    }
+
+    def zip[T2]( o2: Option[T2]): Option[(T, T2)] = (this, o2) match {
+      case (Option.Some(v1), Option.Some(v2)) => Option.Some((v1, v2))
+      case _ => Option.None
+    }
   }
 
   object Option {
@@ -186,10 +201,7 @@ object opt {
    * Реализовать метод printIfAny, который будет печатать значение, если оно есть
    */
 
-  def printIfAny[T](o: Option[T]): Unit = o match {
-    case Option.Some(v) => println(s"Value of the option is $v")
-    case Option.None =>
-  }
+
 
 
   /**
@@ -197,10 +209,7 @@ object opt {
    * Реализовать метод zip, который будет создавать Option от пары значений из 2-х Option
    */
 
-  def zip[T1, T2](o1: Option[T1], o2: Option[T2]): Option[(T1, T2)] = (o1, o2) match {
-    case (Option.Some(v1), Option.Some(v2)) => Option.Some((v1, v2))
-    case _ => Option.None
-  }
+
 
 
   /**
@@ -209,10 +218,7 @@ object opt {
    * в случае если исходный не пуст и предикат от значения = true
    */
 
-  def filter[T](o: Option[T])(predicate: T => Boolean): Option[T] = o match {
-    case base@Option.Some(v) => if (predicate(v)) base else Option.None
-    case _ => Option.None
-  }
+
 
 }
 
@@ -251,10 +257,21 @@ object list {
       loop(List.Nil, this).reverse
     }
 
-
+    def flatMap[B]( f : T => List[B]) : List[B] = {
+      @tailrec
+      def loop(acc : List[B], lstToTraverse : List[T]) : List[B] = lstToTraverse match {
+        case Cons(head, tail) => loop(mergeIntoHead(acc, f(head)), tail)
+        case List.Nil => acc
+      }
+      @tailrec
+      def mergeIntoHead(acc : List[B], lstToMerge : List[B]) : List[B] = lstToMerge match {
+        case Cons(head, tail) => mergeIntoHead(Cons(head, acc), tail)
+        case List.Nil => acc
+      }
+      loop(List.Nil, this)
+    }
 
     def filter(predicate : T => Boolean) : List[T] = {
-
       @tailrec
       def loop(acc : List[T], lstToTraverse : List[T]) : List[T] = lstToTraverse match {
         case Cons(head, tail) => if(predicate(head)) loop(Cons(head, acc), tail) else loop(acc, tail)
